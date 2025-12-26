@@ -5,13 +5,13 @@ import WaterBottle from './components/WaterBottle';
 import { SipRecord, AppState } from './types';
 import { getHydrationTip } from './services/geminiService';
 
-const STORAGE_KEY = 'hydrolove_pro_v2';
+const STORAGE_KEY = 'hydrolove_v5_final_refined';
 
 const INITIAL_STATE: AppState = {
   currentAmount: 0.0,
   goal: 2.0,
   streak: 1,
-  mood: "Sparkly!",
+  mood: "Glowy!",
   history: [],
 };
 
@@ -46,7 +46,7 @@ const App: React.FC = () => {
     return { ...INITIAL_STATE, lastUpdate: Date.now() };
   });
 
-  const [tip, setTip] = useState<string>("Hydroy is waking up for her...");
+  const [tip, setTip] = useState<string>("Hydroy is waking up...");
   const [isLogging, setIsLogging] = useState(false);
   const [isSplashing, setIsSplashing] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
@@ -83,7 +83,7 @@ const App: React.FC = () => {
     setState(prev => ({
       ...prev,
       currentAmount: Math.round((prev.currentAmount + amountMl / 1000) * 100) / 100,
-      history: [newSip, ...prev.history].slice(0, 50)
+      history: [newSip, ...prev.history].slice(0, 20)
     }));
 
     setTimeout(() => {
@@ -93,114 +93,116 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen font-display p-4 md:p-8 xl:p-12 relative overflow-x-hidden">
-      {/* Background Blobs */}
+    <div className="min-h-[100dvh] lg:h-screen lg:overflow-hidden font-display p-4 md:p-6 lg:p-10 flex flex-col items-center relative bg-gradient-to-br from-[#ffe5ec] to-[#fff0f3] overflow-y-auto lg:overflow-y-hidden custom-scrollbar">
+      <Header />
+      
+      {/* Background Ambience */}
       <div className="fixed top-[-10%] right-[-10%] w-[60vw] h-[60vw] bg-primary/10 rounded-full blur-[140px] pointer-events-none animate-float"></div>
       <div className="fixed bottom-[-5%] left-[-10%] w-[50vw] h-[50vw] bg-water/10 rounded-full blur-[140px] pointer-events-none animate-float-delayed"></div>
 
-      <div className="max-w-[1440px] mx-auto relative z-10">
-        <Header />
-
-        {/* Laptop-Ready 3-Column Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 xl:gap-16 items-start">
+      <div className="w-full max-w-[1400px] h-full relative z-10 flex flex-col pt-12 lg:pt-0">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 lg:gap-16 items-start lg:items-center flex-1 h-full py-6">
           
-          {/* Left: Coaching & Quick Menu */}
-          <div className="space-y-6 md:space-y-8 order-2 lg:order-1">
-             <div className="glass-effect p-8 md:p-10 rounded-[3rem] md:rounded-[4rem] shadow-cute border-2 border-white/40">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="material-symbols-outlined text-primary text-2xl animate-heartbeat">auto_awesome</span>
+          {/* Left Column: Advice & Stats (Visible on all devices) */}
+          <div className="space-y-6 order-2 lg:order-1 flex flex-col justify-center animate-[pop-out_0.6s_ease-out]">
+             {/* Advice Bubble */}
+             <div className="glass-effect p-6 rounded-[2.5rem] shadow-cute border-2 border-white/50 bg-white/30 backdrop-blur-md">
+                <div className="flex items-center gap-2.5 mb-2">
+                  <span className="material-symbols-outlined text-primary text-xl animate-heartbeat">auto_awesome</span>
                   <span className="text-[10px] font-black uppercase tracking-widest text-text-muted/60">Hydroy's Advice</span>
                 </div>
-                <p className="text-xl md:text-2xl font-bold text-text-main leading-tight italic">
+                <p className="text-lg lg:text-xl font-bold text-text-main italic leading-snug">
                   "{tip}"
                 </p>
              </div>
 
-             <div className="grid grid-cols-2 gap-4 md:gap-6">
-                <div className="bg-white/80 backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem] shadow-cute flex flex-col items-center border border-white hover:scale-105 transition-transform">
-                  <span className="material-symbols-outlined text-orange-400 text-3xl mb-2">local_fire_department</span>
-                  <span className="text-3xl md:text-4xl font-black text-text-main">{state.streak}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-text-muted/40 mt-1">Day Streak</span>
+             {/* Stats Cards */}
+             <div className="grid grid-cols-2 gap-4 lg:gap-6">
+                <div className="bg-white/90 p-5 rounded-[2rem] shadow-cute border border-white/50 flex flex-col items-center transition-transform hover:scale-105">
+                  <span className="material-symbols-outlined text-orange-400 text-2xl mb-1">local_fire_department</span>
+                  <span className="text-2xl lg:text-3xl font-black text-text-main leading-none">{state.streak}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-text-muted/40 mt-1">Streak</span>
                 </div>
-                <div className="bg-white/80 backdrop-blur-md p-6 md:p-8 rounded-[2.5rem] md:rounded-[3rem] shadow-cute flex flex-col items-center border border-white hover:scale-105 transition-transform">
-                  <span className="material-symbols-outlined text-green-500 text-3xl mb-2">stars</span>
-                  <span className="text-xl md:text-2xl font-black text-text-main text-center leading-none">{state.mood}</span>
-                  <span className="text-[10px] font-black uppercase tracking-widest text-text-muted/40 mt-1">Daily Vibe</span>
-                </div>
-             </div>
-
-             <div className="glass-effect p-8 md:p-10 rounded-[3rem] md:rounded-[4rem] shadow-cute border-2 border-white/40">
-                <h3 className="font-black text-text-main uppercase tracking-[0.2em] text-[10px] mb-6 flex items-center gap-2">
-                  <span className="material-symbols-outlined text-primary">restaurant_menu</span> Drink Menu
-                </h3>
-                <div className="grid grid-cols-2 gap-4">
-                   {[
-                    { ml: 150, label: 'Cup', icon: 'local_cafe' },
-                    { ml: 500, label: 'Jug', icon: 'layers' }
-                   ].map(btn => (
-                     <button 
-                      key={btn.ml}
-                      onClick={() => addWater(btn.ml, btn.label, btn.icon, 'Manual')}
-                      className="py-6 rounded-[2.5rem] bg-white border border-primary/5 shadow-sm hover:shadow-cute hover:-translate-y-1 transition-all flex flex-col items-center justify-center gap-3 group active:scale-95"
-                     >
-                       <span className="material-symbols-outlined text-2xl text-primary group-hover:rotate-12 transition-transform">{btn.icon}</span>
-                       <span className="font-black text-text-main text-lg">{btn.ml}ml</span>
-                     </button>
-                   ))}
+                <div className="bg-white/90 p-5 rounded-[2rem] shadow-cute border border-white/50 flex flex-col items-center transition-transform hover:scale-105">
+                  <span className="material-symbols-outlined text-green-500 text-2xl mb-1">stars</span>
+                  <span className="text-lg lg:text-xl font-black text-text-main text-center leading-none truncate w-full">{state.mood}</span>
+                  <span className="text-[9px] font-black uppercase tracking-widest text-text-muted/40 mt-1">Vibe</span>
                 </div>
              </div>
           </div>
 
-          {/* Center: The Hero Bottle */}
-          <div className="flex flex-col items-center gap-8 md:gap-10 order-1 lg:order-2">
+          {/* Center Column: The Bottle (HERO) */}
+          <div className="flex flex-col items-center justify-center gap-6 lg:gap-10 order-1 lg:order-2">
+             {/* Goal Pill */}
              <div 
               onClick={() => setShowGoalModal(true)}
-              className="bg-white/95 backdrop-blur-xl px-8 md:px-10 py-4 md:py-5 rounded-full shadow-cute border-2 border-white cursor-pointer hover:scale-105 transition-all group active:scale-95 flex items-center gap-4"
+              className="bg-white/95 px-8 py-2.5 rounded-full shadow-cute border-2 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all group flex items-center gap-3 z-20"
              >
-                <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                  <span className="material-symbols-outlined text-primary text-xl md:text-2xl group-hover:rotate-90 transition-transform">tune</span>
+                <div className="w-7 h-7 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-primary text-base group-hover:rotate-90 transition-transform">tune</span>
                 </div>
-                <span className="font-black text-text-main uppercase text-[11px] md:text-xs tracking-[0.3em]">Adjust My Goal</span>
+                <span className="font-black text-text-main uppercase text-[11px] tracking-[0.2em]">Goal: {state.goal}L</span>
              </div>
 
-             <WaterBottle 
-              current={state.currentAmount} 
-              goal={state.goal} 
-              isSplashing={isSplashing} 
-              onQuickAdd={() => addWater(250, 'Pure Water', 'water_full', 'Automatic')}
-             />
+             {/* Bottle Container */}
+             <div className="relative w-full flex items-center justify-center min-h-[380px] md:min-h-[480px]">
+                <div className="transform scale-[1.05] xs:scale-[1.15] md:scale-[1.25] lg:scale-100 transition-all duration-700">
+                  <WaterBottle 
+                    current={state.currentAmount} 
+                    goal={state.goal} 
+                    isSplashing={isSplashing} 
+                    onQuickAdd={() => addWater(250, 'Sip', 'water_full', 'Auto')}
+                  />
+                </div>
+             </div>
+             
+             {/* Quick Actions (Bigger gap and reachability) */}
+             <div className="w-full flex justify-center gap-6 md:gap-8 px-4 pb-4">
+                {[
+                  { ml: 250, label: 'Cup', icon: 'local_cafe' },
+                  { ml: 500, label: 'Jug', icon: 'layers' }
+                ].map(btn => (
+                  <button 
+                    key={btn.ml}
+                    onClick={() => addWater(btn.ml, btn.label, btn.icon, 'Manual')}
+                    className="flex-1 max-w-[150px] py-4 rounded-[2rem] bg-white/95 border-2 border-primary/5 shadow-cute flex flex-col items-center justify-center gap-1 active:scale-90 hover:-translate-y-2 transition-all z-20 group"
+                  >
+                    <span className="material-symbols-outlined text-primary text-3xl transition-transform group-hover:scale-125 group-hover:rotate-12">{btn.icon}</span>
+                    <span className="font-black text-text-main text-sm">{btn.ml}ml</span>
+                  </button>
+                ))}
+             </div>
           </div>
 
-          {/* Right: History Feed */}
-          <div className="glass-effect p-10 md:p-12 rounded-[3.5rem] md:rounded-[5rem] shadow-cute order-3 flex flex-col border-2 border-white/40 lg:h-[750px]">
-             <div className="flex items-center justify-between mb-8 md:mb-10">
-                <h4 className="font-black text-2xl md:text-3xl text-text-main tracking-tighter flex items-center gap-4">
-                  <span className="material-symbols-outlined text-primary text-3xl">event_note</span>
-                  Today's Journey
-                </h4>
+          {/* Right Column: History (Adapted for all devices) */}
+          <div className="glass-effect p-6 lg:p-8 rounded-[2.5rem] lg:rounded-[4rem] shadow-cute order-3 flex flex-col border-2 border-white/50 h-[350px] lg:h-[80%] lg:max-h-[600px] mb-8 lg:mb-0">
+             <div className="flex items-center gap-3 mb-6">
+                <span className="material-symbols-outlined text-primary text-2xl lg:text-3xl">history</span>
+                <h4 className="font-black text-xl lg:text-2xl text-text-main tracking-tighter">Journal</h4>
              </div>
 
-             <div className="flex-1 overflow-y-auto pr-2 space-y-4 md:space-y-6 custom-scrollbar scroll-smooth">
+             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                 {state.history.length === 0 ? (
-                  <div className="h-full flex flex-col items-center justify-center opacity-25 text-center space-y-6">
-                    <span className="material-symbols-outlined text-7xl animate-bounce-slight text-primary">water_drop</span>
-                    <p className="font-black uppercase tracking-[0.3em] text-[10px]">Waiting for her<br/>first drink of love...</p>
+                  <div className="h-full flex flex-col items-center justify-center opacity-10 text-center space-y-4 py-10">
+                    <span className="material-symbols-outlined text-5xl text-primary animate-pulse">water_drop</span>
+                    <p className="font-black uppercase tracking-widest text-[9px]">Awaiting your love...</p>
                   </div>
                 ) : (
                   state.history.map((sip, idx) => (
                     <div 
                       key={sip.id} 
-                      className="group flex items-center justify-between p-5 md:p-6 rounded-[2.5rem] md:rounded-[3rem] bg-white shadow-sm border border-primary/5 hover:shadow-cute hover:-translate-x-2 transition-all animate-[pop-out_0.4s_ease-out_both]"
+                      className="group flex items-center gap-4 p-4 rounded-[1.8rem] bg-white/70 shadow-sm border border-primary/5 hover:shadow-cute transition-all animate-[pop-out_0.4s_ease-out_both]"
                       style={{ animationDelay: `${idx * 0.05}s` }}
                     >
-                      <div className="flex items-center gap-5 md:gap-6">
-                        <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-secondary/30 flex items-center justify-center text-primary group-hover:scale-110 transition-transform shadow-inner">
-                          <span className="material-symbols-outlined text-2xl md:text-3xl">{sip.icon}</span>
+                      <div className="w-11 h-11 rounded-full bg-secondary/30 flex items-center justify-center text-primary transition-transform group-hover:scale-110">
+                        <span className="material-symbols-outlined text-xl">{sip.icon}</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-black text-text-main block">{sip.label}</span>
+                          <span className="text-[10px] font-bold text-primary/60">{sip.timestamp}</span>
                         </div>
-                        <div>
-                          <span className="text-lg md:text-xl font-black text-text-main block">{sip.label}</span>
-                          <span className="text-[10px] font-bold text-primary/60 uppercase tracking-widest">+{sip.amount}ml • {sip.timestamp}</span>
-                        </div>
+                        <span className="text-[9px] font-black text-primary/40 uppercase tracking-[0.2em]">+{sip.amount}ml</span>
                       </div>
                     </div>
                   ))
@@ -211,26 +213,24 @@ const App: React.FC = () => {
 
         {/* Goal Modal */}
         {showGoalModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-[fadeIn_0.3s_ease-out]">
-            <div className="absolute inset-0 bg-text-main/40 backdrop-blur-2xl" onClick={() => setShowGoalModal(false)}></div>
-            <div className="relative bg-white w-full max-w-sm rounded-[4rem] md:rounded-[5rem] shadow-2xl p-10 md:p-12 text-center animate-[scaleIn_0.3s_ease-out] border-[12px] border-secondary/20">
-               <span className="material-symbols-outlined text-7xl text-primary mb-6 block animate-heartbeat">water_lux</span>
-               <h3 className="text-3xl md:text-4xl font-black text-text-main tracking-tighter mb-3">Daily Goal</h3>
-               <p className="text-text-muted/60 font-bold mb-10 text-[10px] uppercase tracking-[0.2em]">Drink to feel magical!</p>
-               
-               <div className="grid grid-cols-2 gap-4 mb-10">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-[fadeIn_0.2s_ease-out]">
+            <div className="absolute inset-0 bg-text-main/30 backdrop-blur-md" onClick={() => setShowGoalModal(false)}></div>
+            <div className="relative bg-white w-full max-w-[320px] rounded-[4rem] shadow-2xl p-10 text-center animate-[scaleIn_0.25s_ease-out] border-[12px] border-secondary/20">
+               <span className="material-symbols-outlined text-6xl text-primary mb-4 block animate-heartbeat">water_lux</span>
+               <h3 className="text-3xl font-black text-text-main tracking-tighter mb-2">My Goal</h3>
+               <p className="text-text-muted/40 font-bold mb-8 text-[10px] uppercase tracking-widest">Hydrate to radiate!</p>
+               <div className="grid grid-cols-2 gap-4 mb-8">
                   {[1.5, 2.0, 2.5, 3.0].map(val => (
                     <button 
                       key={val}
                       onClick={() => { setState(prev => ({ ...prev, goal: val })); setShowGoalModal(false); }}
-                      className={`py-6 rounded-[2.5rem] md:rounded-[3rem] font-black text-2xl md:text-3xl transition-all ${state.goal === val ? 'bg-primary text-white shadow-cute scale-105' : 'bg-secondary/40 text-text-main hover:bg-secondary active:scale-95'}`}
+                      className={`py-5 rounded-[2rem] font-black text-2xl transition-all ${state.goal === val ? 'bg-primary text-white shadow-cute scale-105' : 'bg-secondary/40 text-text-main hover:bg-secondary active:scale-95'}`}
                     >
                       {val}L
                     </button>
                   ))}
                </div>
-               
-               <button onClick={() => setShowGoalModal(false)} className="text-[10px] font-black uppercase text-text-muted/30 tracking-[0.3em] hover:text-primary transition-colors">Close</button>
+               <button onClick={() => setShowGoalModal(false)} className="text-[10px] font-black uppercase text-text-muted/20 tracking-widest hover:text-primary transition-colors">Close</button>
             </div>
           </div>
         )}
@@ -239,6 +239,9 @@ const App: React.FC = () => {
       <style>{`
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
         @keyframes scaleIn { from { transform: scale(0.9) translateY(20px); opacity: 0; } to { transform: scale(1) translateY(0); opacity: 1; } }
+        @media (min-width: 1024px) {
+          body { overflow: hidden; }
+        }
       `}</style>
     </div>
   );
