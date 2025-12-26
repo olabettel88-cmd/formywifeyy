@@ -16,7 +16,7 @@ export const getHydrationTip = async (currentAmount: number, goal: number): Prom
   
   const fallbacks = [
     "Your skin is going to be so glowy today! 🌸",
-    "You're the best for drinking water! 💧",
+    "You're the best for drinking water! ",
     "Stay hydrated, u lool beautiful everyday🤭"
   ];
 
