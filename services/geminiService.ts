@@ -16,8 +16,8 @@ export const getHydrationTip = async (currentAmount: number, goal: number): Prom
   
   const fallbacks = [
     "Your skin is going to be so glowy today! 🌸",
-    "Hydroy thinks you're the best for drinking water! 💧",
-    "Stay hydrated, stay cute, stay you! 🎀"
+    "You're the best for drinking water! 💧",
+    "Stay hydrated, ur beautiful everyday🤭"
   ];
 
   if (!ai) return fallbacks[Math.floor(Math.random() * fallbacks.length)];
