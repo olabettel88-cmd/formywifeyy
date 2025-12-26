@@ -199,7 +199,7 @@ const App: React.FC = () => {
             <div className="space-y-6 order-2 lg:order-1 flex flex-col justify-center animate-[pop-out_0.6s_ease-out]">
                <div className="glass-effect p-6 md:p-8 rounded-[2.5rem] shadow-cute border-2 border-white/60 bg-white/40 backdrop-blur-md relative">
                   <div className="absolute -top-3 left-8 bg-primary text-white text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-widest shadow-sm">
-                    AI Coach
+                    Truth
                   </div>
                   <div className="flex items-start gap-3 mt-1">
                     <span className="material-symbols-outlined text-primary text-2xl animate-heartbeat flex-shrink-0">magic_button</span>
