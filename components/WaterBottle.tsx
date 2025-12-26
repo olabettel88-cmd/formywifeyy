@@ -23,9 +23,9 @@ const WaterBottle: React.FC<WaterBottleProps> = ({ current, goal, isSplashing, o
 
   const getEvolution = () => {
     if (displayPercentage >= 100) return { emoji: '👑', mood: 'Queen', color: 'text-[#ff4d6d]' };
-    if (displayPercentage >= 80) return { emoji: '💖', mood: 'Glowy', color: 'text-[#ff758f]' };
-    if (displayPercentage >= 60) return { emoji: '🌸', mood: 'Bloom', color: 'text-[#ff8fa3]' };
-    if (displayPercentage >= 40) return { emoji: '🎀', mood: 'Sweet', color: 'text-[#ffb3c1]' };
+    if (displayPercentage >= 80) return { emoji: '💖', mood: 'Beautiful', color: 'text-[#ff758f]' };
+    if (displayPercentage >= 60) return { emoji: '🌸', mood: 'Honey', color: 'text-[#ff8fa3]' };
+    if (displayPercentage >= 40) return { emoji: '🎀', mood: 'Sweetie', color: 'text-[#ffb3c1]' };
     if (displayPercentage >= 20) return { emoji: '🌷', mood: 'Waking', color: 'text-[#ffccd5]' };
     return { emoji: '🥀', mood: 'Thirsty', color: 'text-pink-200' };
   };
