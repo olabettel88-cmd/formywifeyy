@@ -5,9 +5,20 @@ import { SipRecord, AppState } from './types';
 import { getHydrationTip } from './services/geminiService';
 
 const STORAGE_KEY = 'hydrolove_v5_final_pro';
-// Use environment variable for Railway backend endpoint
-// In this environment, process.env is provided by the runner
-const API_ENDPOINT = (process.env.VITE_API_URL || '') + '/api/hydration';
+
+// Safely derive the API endpoint from environment variables with a fallback
+const getApiEndpoint = () => {
+  try {
+    const baseUrl = (typeof process !== 'undefined' && process.env.VITE_API_URL) 
+      ? process.env.VITE_API_URL 
+      : '';
+    return `${baseUrl}/api/hydration`;
+  } catch (e) {
+    return '/api/hydration';
+  }
+};
+
+const API_ENDPOINT = getApiEndpoint();
 
 const INITIAL_STATE: AppState = {
   currentAmount: 0.0,
@@ -31,7 +42,7 @@ const App: React.FC = () => {
     const init = async () => {
       let data = INITIAL_STATE;
       
-      // 1. Try to fetch from Railway Backend (Postgres via Railway API)
+      // 1. Try to fetch from Railway Backend (Postgres via API)
       try {
         const response = await fetch(API_ENDPOINT);
         if (response.ok) {
