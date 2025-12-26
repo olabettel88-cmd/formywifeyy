@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from 'react';
 import Header from './components/Header';
 import WaterBottle from './components/WaterBottle';
@@ -6,6 +5,9 @@ import { SipRecord, AppState } from './types';
 import { getHydrationTip } from './services/geminiService';
 
 const STORAGE_KEY = 'hydrolove_v5_final_pro';
+// Use environment variable for Railway backend endpoint
+// In this environment, process.env is provided by the runner
+const API_ENDPOINT = (process.env.VITE_API_URL || '') + '/api/hydration';
 
 const INITIAL_STATE: AppState = {
   currentAmount: 0.0,
@@ -13,47 +15,93 @@ const INITIAL_STATE: AppState = {
   streak: 1,
   mood: "Glowy!",
   history: [],
+  lastUpdate: Date.now(),
 };
 
 const App: React.FC = () => {
-  const [state, setState] = useState<AppState>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    const todayStr = new Date().toDateString();
-    
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        const lastUpdateStr = new Date(parsed.lastUpdate || 0).toDateString();
-        
-        if (lastUpdateStr !== todayStr) {
-          const lastUpdateTime = parsed.lastUpdate || 0;
-          const diffDays = Math.floor((Date.now() - lastUpdateTime) / (1000 * 60 * 60 * 24));
-          const newStreak = diffDays <= 1 ? parsed.streak : 1;
-          
-          return { 
-            ...parsed, 
-            currentAmount: 0, 
-            history: [], 
-            streak: newStreak,
-            lastUpdate: Date.now() 
-          };
-        }
-        return parsed;
-      } catch (e) {
-        return { ...INITIAL_STATE, lastUpdate: Date.now() };
-      }
-    }
-    return { ...INITIAL_STATE, lastUpdate: Date.now() };
-  });
-
+  const [state, setState] = useState<AppState>(INITIAL_STATE);
+  const [isInitialized, setIsInitialized] = useState(false);
   const [tip, setTip] = useState<string>("Hydroy is waking up...");
   const [isLogging, setIsLogging] = useState(false);
   const [isSplashing, setIsSplashing] = useState(false);
   const [showGoalModal, setShowGoalModal] = useState(false);
 
+  // Initialize state from DB or LocalStorage
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ ...state, lastUpdate: Date.now() }));
-  }, [state]);
+    const init = async () => {
+      let data = INITIAL_STATE;
+      
+      // 1. Try to fetch from Railway Backend (Postgres via Railway API)
+      try {
+        const response = await fetch(API_ENDPOINT);
+        if (response.ok) {
+          data = await response.json();
+        } else {
+          throw new Error('No backend data');
+        }
+      } catch (e) {
+        // 2. Fallback to LocalStorage if backend fails
+        const saved = localStorage.getItem(STORAGE_KEY);
+        if (saved) {
+          try {
+            data = JSON.parse(saved);
+          } catch (err) {
+            console.error("Storage parse error", err);
+          }
+        }
+      }
+
+      // Check for daily reset
+      const todayStr = new Date().toDateString();
+      const lastUpdateStr = data.lastUpdate ? new Date(data.lastUpdate).toDateString() : '';
+      
+      if (lastUpdateStr && lastUpdateStr !== todayStr) {
+        const lastUpdateTime = data.lastUpdate || 0;
+        const diffDays = Math.floor((Date.now() - lastUpdateTime) / (1000 * 60 * 60 * 24));
+        const newStreak = diffDays <= 1 ? data.streak : 1;
+        
+        data = { 
+          ...data, 
+          currentAmount: 0, 
+          history: [], 
+          streak: newStreak,
+          lastUpdate: Date.now() 
+        };
+      } else {
+        data = { ...data, lastUpdate: Date.now() };
+      }
+
+      setState(data);
+      setIsInitialized(true);
+    };
+
+    init();
+  }, []);
+
+  // Sync state to persistence layers
+  useEffect(() => {
+    if (!isInitialized) return;
+
+    const syncData = async () => {
+      const payload = { ...state, lastUpdate: Date.now() };
+      
+      // Always save to LocalStorage for offline resilience
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+
+      // Attempt to save to Backend (Railway/Postgres)
+      try {
+        await fetch(API_ENDPOINT, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch (e) {
+        console.debug("Backend sync pending railway setup...");
+      }
+    };
+
+    syncData();
+  }, [state, isInitialized]);
 
   const fetchTip = useCallback(async () => {
     const newTip = await getHydrationTip(state.currentAmount, state.goal);
@@ -61,10 +109,12 @@ const App: React.FC = () => {
   }, [state.currentAmount, state.goal]);
 
   useEffect(() => {
-    fetchTip();
-    const interval = setInterval(fetchTip, 300000); 
-    return () => clearInterval(interval);
-  }, [fetchTip]);
+    if (isInitialized) {
+      fetchTip();
+      const interval = setInterval(fetchTip, 300000); 
+      return () => clearInterval(interval);
+    }
+  }, [fetchTip, isInitialized]);
 
   const addWater = (amountMl: number, label: string, icon: string, category: string) => {
     if (isLogging) return;
@@ -105,7 +155,6 @@ const App: React.FC = () => {
           
           {/* Left Column: Advice & Stats */}
           <div className="space-y-6 order-2 lg:order-1 flex flex-col justify-center animate-[pop-out_0.6s_ease-out]">
-             {/* Advice Bubble */}
              <div className="glass-effect p-6 md:p-8 rounded-[2.5rem] shadow-cute border-2 border-white/60 bg-white/40 backdrop-blur-md relative">
                 <div className="absolute -top-3 left-8 bg-primary text-white text-[9px] font-black uppercase px-3 py-1 rounded-full tracking-widest shadow-sm">
                   Hydroy says:
@@ -118,7 +167,6 @@ const App: React.FC = () => {
                 </div>
              </div>
 
-             {/* Stats Cards */}
              <div className="grid grid-cols-2 gap-4 md:gap-6">
                 <div className="bg-white/90 p-5 md:p-6 rounded-[2.5rem] shadow-cute border border-white/50 flex flex-col items-center transition-all hover:translate-y-[-4px]">
                   <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mb-2">
@@ -139,7 +187,6 @@ const App: React.FC = () => {
 
           {/* Center Column: The Hero Bottle */}
           <div className="flex flex-col items-center justify-center gap-6 lg:gap-8 order-1 lg:order-2">
-             {/* Goal Pill - Smaller on mobile */}
              <div 
               onClick={() => setShowGoalModal(true)}
               className="bg-white/95 px-6 py-2 md:px-10 md:py-3 rounded-full shadow-cute border-2 border-white cursor-pointer hover:scale-110 active:scale-95 transition-all group flex items-center gap-2 md:gap-3 z-20"
@@ -150,7 +197,6 @@ const App: React.FC = () => {
                 <span className="font-black text-text-main uppercase text-[10px] md:text-[12px] tracking-[0.2em] md:tracking-[0.25em]">Goal: {state.goal}L</span>
              </div>
 
-             {/* Bottle Container */}
              <div className="relative w-full flex items-center justify-center min-h-[350px] md:min-h-[480px]">
                 <div className="transform scale-[1.1] xs:scale-[1.25] md:scale-[1.3] lg:scale-[0.85] transition-all duration-700">
                   <WaterBottle 
@@ -162,7 +208,6 @@ const App: React.FC = () => {
                 </div>
              </div>
              
-             {/* Action Buttons - Minimized for Mobile (250ml/500ml) */}
              <div className="w-full flex justify-center gap-10 md:gap-12 px-6 pb-4">
                 {[
                   { ml: 250, label: 'Cup', icon: 'local_cafe' },

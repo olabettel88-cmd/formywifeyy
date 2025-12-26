@@ -14,4 +14,6 @@ export interface AppState {
   streak: number;
   mood: string;
   history: SipRecord[];
+  // Tracks the last update time for daily reset logic and fixes TS errors
+  lastUpdate: number;
 }
