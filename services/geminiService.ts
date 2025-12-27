@@ -15,7 +15,6 @@ export const getHydrationTip = async (currentAmount: number, goal: number): Prom
   const ai = getAIClient();
   
   const fallbacks = [
-    "Your skin is going to be so glowy today! 🌸",
     "You're the best for drinking water! ",
     "Stay hydrated, ur hair looks sooooo beautiful today🤭"
   ];
